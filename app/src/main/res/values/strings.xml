@@ -2,4 +2,9 @@
     <string name="app_name">TaskApplication</string>
     <string name="thread">Thread</string>
     <string name="simple">Simple</string>
+    <string name="hello">Hello</string>
+    <string name="type_millisecs">Type millisecs</string>
+    <string name="click">Click</string>
+    <string name="asynctask">AsyncTask</string>
+    <string name="service">Service</string>
 </resources>

@@ -1,7 +1,12 @@
 package ru.geekbrains.taskapplication;
 
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.AsyncTask;
 import android.os.Handler;
+import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -16,6 +21,55 @@ public class MainActivity extends AppCompatActivity {
     private EditText editMillisecs;
     private TextView textCount;
     int counterClick = 0;
+
+//region service
+    WaitService waitService;
+    private boolean isBound = false;
+
+    @Override
+    protected void onStart(){
+        super.onStart();
+        Intent intent = new Intent(this, WaitService.class);
+        bindService(intent, connection, Context.BIND_AUTO_CREATE);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (isBound){
+            unbindService(connection);
+            isBound = false;
+        }
+    }
+
+    private ServiceConnection connection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName className, IBinder service) {
+            WaitService.WaitBinder binder = (WaitService.WaitBinder) service;
+            waitService = binder.getService();
+            isBound = true;
+        }
+        @Override
+        public void onServiceDisconnected(ComponentName arg0) {
+            isBound = false;
+        }
+    };
+
+    public interface OnServiceResultListener{
+        void onServiceResult(String string);
+    }
+
+    private void executeService(){
+        if (isBound){
+            waitService.asyncMessage(getMillisecs(), new OnServiceResultListener() {
+                @Override
+                public void onServiceResult(String string) {
+                    textHello.setText(string);
+                }
+            });
+        }
+    }
+//endregion
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,6 +113,13 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        Button buttonService = findViewById(R.id.buttonService);
+        buttonService.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                executeService();
+            }
+        });
     }
 
     private void executeSimple(){
@@ -83,20 +144,23 @@ public class MainActivity extends AppCompatActivity {
         }).start();
     }
 
-    private void executeAsyncTask(){
-        new WaitAsyncTask().execute(getMillisecs());
-    }
-
+//region delay operation
     private int getMillisecs(){
         return Integer.parseInt(editMillisecs.getText().toString());
     }
 
     private void calculate(int millisec) {
         try {
-            Thread.sleep(getMillisecs());
+            Thread.sleep(millisec);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+    }
+//endregion
+
+//region AsyncTask
+    private void executeAsyncTask(){
+        new WaitAsyncTask().execute(getMillisecs());
     }
 
     private class WaitAsyncTask extends AsyncTask<Integer, Void, String>{
@@ -112,5 +176,5 @@ public class MainActivity extends AppCompatActivity {
             textHello.setText(s);
         }
     }
-
+//endregion
 }
