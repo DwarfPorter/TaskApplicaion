@@ -15,6 +15,9 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import androidx.work.Data;
+import androidx.work.WorkManager;
+
 public class MainActivity extends AppCompatActivity {
 
     private TextView textHello;
@@ -142,6 +145,11 @@ public class MainActivity extends AppCompatActivity {
                 });
             }
         }).start();
+    }
+
+    private void executeWorker(){
+        Data input = new Data.Builder().putInt("MilliSeconds", getMillisecs()).build();
+        WorkManager.getInstance().beginWith()
     }
 
 //region delay operation

@@ -7,4 +7,5 @@
     <string name="click">Click</string>
     <string name="asynctask">AsyncTask</string>
     <string name="service">Service</string>
+    <string name="worker">Worker</string>
 </resources>
