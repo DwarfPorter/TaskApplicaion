@@ -1,5 +1,6 @@
 package ru.geekbrains.taskapplication;
 
+import android.arch.lifecycle.Observer;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -7,6 +8,7 @@ import android.content.ServiceConnection;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.IBinder;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -16,9 +18,11 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import androidx.work.Data;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkInfo;
 import androidx.work.WorkManager;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements ConstantWorker {
 
     private TextView textHello;
     private EditText editMillisecs;
@@ -123,6 +127,14 @@ public class MainActivity extends AppCompatActivity {
                 executeService();
             }
         });
+
+        Button buttonWorker = findViewById(R.id.buttonWorker);
+        buttonWorker.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                executeWorker();
+            }
+        });
     }
 
     private void executeSimple(){
@@ -147,10 +159,25 @@ public class MainActivity extends AppCompatActivity {
         }).start();
     }
 
+//region Worker
     private void executeWorker(){
-        Data input = new Data.Builder().putInt("MilliSeconds", getMillisecs()).build();
-        WorkManager.getInstance().beginWith()
+        Data input = new Data.Builder().putInt(MilliSeconds, getMillisecs()).build();
+        OneTimeWorkRequest waitWorkRequest = new OneTimeWorkRequest.Builder(WaitWorker.class)
+                .setInputData(input)
+                .build();
+        WorkManager.getInstance().beginWith(waitWorkRequest).enqueue();
+        WorkManager.getInstance().getWorkInfoByIdLiveData(waitWorkRequest.getId())
+                .observe(this, new Observer<WorkInfo>() {
+                    @Override
+                    public void onChanged(@Nullable WorkInfo workInfo) {
+                        if (workInfo.getState() == WorkInfo.State.SUCCEEDED){
+                            Data output = workInfo.getOutputData();
+                            textHello.setText(output.getString(StringResult));
+                        }
+                    }
+                });
     }
+//endregion
 
 //region delay operation
     private int getMillisecs(){

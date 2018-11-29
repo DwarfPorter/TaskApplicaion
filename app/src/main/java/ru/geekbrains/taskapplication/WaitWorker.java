@@ -8,7 +8,7 @@ import androidx.work.Data;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
-public class WaitWorker extends Worker {
+public class WaitWorker extends Worker implements ConstantWorker {
     public WaitWorker(@NonNull Context context, @NonNull WorkerParameters workerParams) {
         super(context, workerParams);
     }
@@ -16,9 +16,9 @@ public class WaitWorker extends Worker {
     @NonNull
     @Override
     public Result doWork() {
-        int millisecs = getInputData().getInt("MilliSeconds", 0);
+        int millisecs = getInputData().getInt(MilliSeconds, 0);
         calculate(millisecs);
-        Data output = new Data.Builder().putString("StringResult", "Hello from worker!").build();
+        Data output = new Data.Builder().putString(StringResult, "Hello from worker!").build();
         setOutputData(output);
         return Result.SUCCESS;
     }
